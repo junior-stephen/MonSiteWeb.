@@ -1,41 +1,302 @@
-* { 
-  box-sizing: border-box; 
-} 
- 
-body { 
-  margin: 0; 
-  font-family: Arial, sans-serif; 
-  line-height: 1.6; 
-  color: #222; 
-  background: #f4f7fb; 
-} 
- 
-header { 
-  padding: 28px 16px; 
-  text-align: center; 
-  color: white; 
-  background: #17365d; 
-} 
- 
-nav a { 
-  margin: 0 10px; 
-  color: white; 
-  text-decoration: none; 
-} 
- 
-main { 
-  width: min(900px, 92%); 
-  margin: 24px auto; 
-} 
- 
-section { 
-  margin-bottom: 18px; 
-  padding: 22px; 
-  background: white; 
-  border-radius: 8px; 
-} 
-footer { 
-padding: 12px; 
-text-align: center; 
-background: #e1eaf4; 
+/* ==========================================================
+   1. VARIABLES (design tokens)
+   Pourquoi : chaque couleur, police et espacement est défini
+   une seule fois. Modifier ici change toute la page de façon
+   cohérente, sans rien chercher dans le reste du fichier.
+   ========================================================== */
+:root {
+  /* Couleurs */
+  --ink: #0e2a4d;           /* bleu nuit : header, titres, footer */
+  --cobalt: #2c5fe0;        /* bleu vif : accents, numéros, rail */
+  --mint: #3fe0b5;          /* menthe : accent sur fond sombre uniquement */
+  --paper: #f1f5fb;         /* fond de page */
+  --surface: #ffffff;       /* fond des sections */
+  --text: #1d2b40;
+  --muted: #53647d;
+  --line: #c9d6ec;          /* traits et bordures */
+
+  /* Typographie : polices système en secours */
+  --font-display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Figtree", "Segoe UI", system-ui, sans-serif;
+
+  /* Mise en page */
+  --radius: 14px;           /* un seul rayon de coin pour tous les blocs */
+  --width: 960px;
+  --gutter: 48px;           /* espace réservé à gauche pour le rail */
+  --rail-x: 12px;           /* position horizontale du rail */
+  --dot: 14px;              /* diamètre des points du rail */
+}
+
+/* ==========================================================
+   2. BASE
+   ========================================================== */
+* {
+  box-sizing: border-box;   /* le padding est inclus dans la largeur : calculs plus simples */
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+/* Respecte les personnes qui ont désactivé les animations dans leur système */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: 1.05rem;
+  line-height: 1.65;
+  color: var(--text);
+  background: var(--paper);
+}
+
+h1, h2, h3 {
+  font-family: var(--font-display);
+  color: var(--ink);
+  line-height: 1.15;
+}
+
+p {
+  margin: 0 0 12px;
+  max-width: 62ch;          /* lignes courtes = texte plus facile à lire */
+}
+
+a {
+  color: var(--cobalt);
+}
+
+/* Focus clavier visible partout : indispensable pour l'accessibilité */
+a:focus-visible {
+  outline: 3px solid var(--mint);
+  outline-offset: 3px;
+}
+
+/* ==========================================================
+   3. HEADER : l'élément marquant de la page
+   ========================================================== */
+header {
+  padding: clamp(40px, 7vw, 80px) 0;
+  color: #fff;
+  background: var(--ink);
+}
+
+.header-inner {
+  width: min(var(--width), 92%);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr auto;   /* texte à gauche, graphe à droite */
+  align-items: center;
+  gap: 32px;
+}
+
+h1 {
+  margin: 0 0 28px;
+  max-width: 13ch;
+  font-size: clamp(2.2rem, 6vw, 3.6rem);
+  letter-spacing: -0.02em;
+  color: #fff;
+}
+
+/* Navigation : boutons arrondis, même rayon visuel que le reste (pilule) */
+nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+nav a {
+  padding: 8px 18px;
+  color: #fff;
+  text-decoration: none;
+  font-weight: 600;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 999px;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+nav a:hover {
+  color: var(--ink);
+  background: var(--mint);
+  border-color: var(--mint);
+}
+
+/* Illustration du graphe Git */
+.hero-graph {
+  width: clamp(140px, 22vw, 220px);
+  height: auto;
+}
+
+.graph-main,
+.graph-branch {
+  fill: none;
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+
+.graph-main   { stroke: rgba(255, 255, 255, 0.55); }
+.graph-branch { stroke: var(--mint); }
+
+.graph-node {
+  fill: var(--ink);         /* même couleur que le fond : le trait semble passer derrière */
+  stroke: #fff;
+  stroke-width: 3;
+}
+
+.graph-node--branch {
+  stroke: var(--mint);
+}
+
+/* ==========================================================
+   4. CONTENU : sections reliées par un rail vertical
+   Le rail et ses points reprennent l'idée de l'historique Git.
+   ========================================================== */
+main {
+  position: relative;
+  width: min(var(--width), 92%);
+  margin: 56px auto;
+  padding-left: var(--gutter);
+}
+
+/* Le rail : une simple ligne verticale à gauche */
+main::before {
+  content: "";
+  position: absolute;
+  top: 8px;
+  bottom: 28px;
+  left: calc(var(--rail-x) - 1px);
+  width: 2px;
+  background: var(--line);
+}
+
+/* Toutes les sections : exactement le même style, aucune exception */
+section {
+  position: relative;
+  margin-bottom: 28px;
+  padding: 30px 34px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  scroll-margin-top: 24px;  /* laisse de l'air au-dessus quand on arrive via le menu */
+}
+
+/* Le point de chaque section sur le rail */
+section::before {
+  content: "";
+  position: absolute;
+  top: 36px;
+  /* calcul : position du rail - demi-point - gouttière - 1px de bordure */
+  left: calc(var(--rail-x) - var(--dot) / 2 - var(--gutter) - 1px);
+  width: var(--dot);
+  height: var(--dot);
+  background: var(--paper);
+  border: 3px solid var(--cobalt);
+  border-radius: 50%;
+}
+
+/* Retour visuel quand on clique sur le menu : la section visée s'accentue */
+section:target {
+  border-color: var(--cobalt);
+}
+
+section:target::before {
+  background: var(--cobalt);
+}
+
+h2 {
+  margin: 0 0 12px;
+  font-size: 1.7rem;
+}
+
+h3 {
+  margin: 28px 0 12px;
+  font-size: 1.2rem;
+}
+
+/* Liste des formations : numérotée car l'ordre est réel (<ol>) */
+.formations {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: formation;
+}
+
+.formations li {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 16px;
+  font-weight: 600;
+  color: var(--ink);
+  background: var(--paper);
+  border-radius: calc(var(--radius) - 4px);
+  counter-increment: formation;
+}
+
+.formations li::before {
+  content: counter(formation);
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  font-size: 0.9rem;
+  color: #fff;
+  background: var(--cobalt);
+  border-radius: 50%;
+}
+
+/* Lien e-mail */
+section a {
+  font-weight: 600;
+  text-underline-offset: 3px;
+}
+
+section a:hover {
+  color: var(--ink);
+}
+
+/* ==========================================================
+   5. FOOTER
+   ========================================================== */
+footer {
+  padding: 28px 16px;
+  text-align: center;
+  font-size: 0.95rem;
+  color: #c9d6ee;
+  background: var(--ink);   /* même couleur que le header : la page est "encadrée" */
+}
+
+footer p {
+  margin: 0 auto;
+}
+
+/* ==========================================================
+   6. MOBILE (écrans étroits)
+   On redéfinit seulement les variables : le reste s'adapte seul.
+   ========================================================== */
+@media (max-width: 720px) {
+  :root {
+    --gutter: 30px;
+    --rail-x: 8px;
+  }
+
+  .header-inner {
+    grid-template-columns: 1fr;     /* une seule colonne */
+  }
+
+  .hero-graph {
+    display: none;                  /* décoratif : on le retire pour gagner de la place */
+  }
+
+  section {
+    padding: 22px 20px;
+  }
+
+  section::before {
+    top: 28px;
+  }
 }
